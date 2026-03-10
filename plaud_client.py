@@ -32,16 +32,17 @@ class PlaudClient:
         "us-east-1": "https://api-use1.plaud.ai",  # Assumed pattern
     }
 
-    def __init__(self, token: str, region: str = "eu-central-1"):
+    def __init__(self, token: str, region: str = "eu-central-1", api_domain: str = None):
         """
         Initialize the Plaud client.
 
         Args:
             token: Bearer token (with or without 'bearer ' prefix)
             region: AWS region (default: eu-central-1)
+            api_domain: Override API domain (from PLAUD_API_DOMAIN env var)
         """
         self.token = token if token.startswith("bearer ") else f"bearer {token}"
-        self.api_domain = self.API_DOMAINS.get(region, self.API_DOMAINS["eu-central-1"])
+        self.api_domain = api_domain or self.API_DOMAINS.get(region, self.API_DOMAINS["eu-central-1"])
         self.session = requests.Session()
         self.session.headers.update({
             "Authorization": self.token,
@@ -235,7 +236,8 @@ Examples:
         parser.print_help()
         sys.exit(1)
 
-    client = PlaudClient(args.token, args.region)
+    api_domain = os.environ.get("PLAUD_API_DOMAIN")
+    client = PlaudClient(args.token, args.region, api_domain=api_domain)
 
     try:
         if args.command == "list":
