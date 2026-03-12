@@ -1,0 +1,6 @@
+{
+  "work_kw": ["meeting", "strategy", "alignment", "leadership", "board",
+              "partnership", "operational", "interview", "pricing"],
+  "diary_kw": ["diary", "memo", "reflection", "journal"],
+  "personal_kw": ["conversation", "personal", "chat"]
+}

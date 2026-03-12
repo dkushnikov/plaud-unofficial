@@ -1,3 +1,4 @@
 .env
+classify_rules.json
 __pycache__/
 *.pyc

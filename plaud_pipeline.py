@@ -16,8 +16,12 @@ import re
 import sys
 from pathlib import Path
 
+from dotenv import load_dotenv
 
-PLAUD_DIR = Path(os.environ.get("PLAUD_DATA_DIR", os.path.expanduser("~/plaud-data")))
+# Load .env from script directory
+load_dotenv(Path(__file__).parent / ".env")
+
+PLAUD_DIR = Path(os.path.expanduser(os.environ.get("PLAUD_DATA_DIR", "~/plaud-data")))
 
 
 def read_frontmatter(path: Path) -> dict:
@@ -54,6 +58,93 @@ def write_frontmatter_field(path: Path, field: str, value: str):
 
     new_content = f"---{fm_text}---{parts[2]}"
     path.write_text(new_content, encoding="utf-8")
+
+
+def load_classify_rules() -> dict:
+    """
+    Load classification keywords from external config file.
+    Falls back to device-only rules if no config found.
+    Config: classify_rules.json in script dir or PLAUD_RULES_PATH env var.
+    """
+    rules_path = Path(os.environ.get(
+        "PLAUD_RULES_PATH",
+        Path(__file__).parent / "classify_rules.json"
+    ))
+    if rules_path.exists():
+        import json
+        return json.loads(rules_path.read_text(encoding="utf-8"))
+    return {"work_kw": [], "diary_kw": [], "personal_kw": []}
+
+
+def classify_category(title: str, device: str, speakers: int, duration_str: str) -> tuple[str, str]:
+    """
+    Hybrid rule-based categorizer.
+    Returns (category, confidence): confidence = "high" or "hold".
+    Keywords loaded from classify_rules.json (not in repo).
+    """
+    rules = load_classify_rules()
+    title_lower = title.lower()
+
+    # Parse duration to seconds
+    dur_sec = 0
+    m = re.match(r'(?:(\d+)h\s*)?(\d+)m\s*(\d+)s', duration_str)
+    if m:
+        dur_sec = int(m.group(1) or 0) * 3600 + int(m.group(2)) * 60 + int(m.group(3))
+
+    diary_kw = rules.get("diary_kw", [])
+    work_kw = rules.get("work_kw", [])
+    personal_kw = rules.get("personal_kw", [])
+
+    # --- High confidence rules ---
+
+    # Pin + solo + diary keywords → personal-diary
+    if device == "pin" and speakers <= 1:
+        if diary_kw and any(kw in title_lower for kw in diary_kw):
+            return "personal-diary", "high"
+
+    # Pin + solo + very short (<3 min) → voice-memo
+    if device == "pin" and speakers <= 1 and dur_sec < 180:
+        return "voice-memo", "high"
+
+    # Pin + solo + no work keywords → personal-diary
+    if device == "pin" and speakers <= 1:
+        if not work_kw or not any(kw in title_lower for kw in work_kw):
+            return "personal-diary", "high"
+
+    # Note + work keywords → work-meeting
+    if device == "note" and work_kw:
+        if any(kw in title_lower for kw in work_kw):
+            return "work-meeting", "high"
+
+    # 1-1 pattern in title
+    if re.search(r"1-1|1on1|f2f.*1-1|<>", title_lower):
+        return "work-1on1", "high"
+
+    # Interview
+    if "interview" in title_lower:
+        return "interview", "high"
+
+    # Personal conversation keywords (Pin + multi-speaker)
+    if device == "pin" and speakers > 1 and personal_kw:
+        if any(kw in title_lower for kw in personal_kw):
+            return "personal-conversation", "high"
+
+    # Note + solo → unusual
+    if device == "note" and speakers <= 1:
+        return "voice-memo", "hold"
+
+    # --- Fallback by device ---
+
+    if device == "note":
+        return "work-meeting", "hold"
+    if device == "pin" and speakers > 1:
+        return "personal-conversation", "hold"
+    if device == "pin":
+        return "personal-diary", "hold"
+    if device == "zoom":
+        return "work-meeting", "high"
+
+    return "voice-memo", "hold"
 
 
 def classify_sensitivity(category: str, device: str) -> str:
@@ -119,6 +210,44 @@ def cmd_status(args):
     print("\nDevices:")
     for d, n in sorted(devices.items(), key=lambda x: -x[1]):
         print(f"  {d:10} {n:3}")
+
+
+def cmd_categorize(args):
+    """Assign category based on device + title + speakers + duration."""
+    updated = 0
+    hold_count = 0
+
+    for folder in sorted(PLAUD_DIR.iterdir()):
+        t = folder / "transcript.md"
+        if not t.exists():
+            continue
+        fm = read_frontmatter(t)
+
+        # Skip if already categorized (unless --force)
+        if fm.get("category") and not args.force:
+            continue
+
+        title = fm.get("title", folder.name)
+        device = fm.get("device", "unknown")
+        speakers = int(fm.get("speakers", "1"))
+        duration = fm.get("duration", "0m 0s")
+
+        category, confidence = classify_category(title, device, speakers, duration)
+
+        if args.dry_run:
+            flag = " ← HOLD" if confidence == "hold" else ""
+            print(f"  {device:5} {speakers}sp {duration:>10}  {category:22} {title[:45]}{flag}")
+        else:
+            write_frontmatter_field(t, "category", category)
+            if confidence == "hold":
+                write_frontmatter_field(t, "category_confidence", "hold")
+                hold_count += 1
+            updated += 1
+
+    if args.dry_run:
+        print(f"\nDry run complete")
+    else:
+        print(f"Updated: {updated} ({hold_count} marked HOLD)")
 
 
 def cmd_classify(args):
@@ -195,6 +324,10 @@ def main():
 
     sub.add_parser("status", help="Pipeline overview")
 
+    cat = sub.add_parser("categorize", help="Assign category (hybrid rules)")
+    cat.add_argument("--dry-run", action="store_true")
+    cat.add_argument("--force", action="store_true", help="Re-categorize even if already set")
+
     cls = sub.add_parser("classify", help="Assign sensitivity")
     cls.add_argument("--dry-run", action="store_true")
     cls.add_argument("--force", action="store_true", help="Re-classify even if already set")
@@ -211,6 +344,8 @@ def main():
 
     if args.command == "status":
         cmd_status(args)
+    elif args.command == "categorize":
+        cmd_categorize(args)
     elif args.command == "classify":
         cmd_classify(args)
     elif args.command == "list-hold":
