@@ -205,9 +205,10 @@ def sync_file(client: PlaudClient, file_info: dict, output_dir: Path,
 
 def main():
     parser = argparse.ArgumentParser(description="Sync Plaud recordings to local folder")
+    default_output = os.environ.get('PLAUD_DATA_DIR', os.path.expanduser('~/plaud-data'))
     parser.add_argument('--output', '-o',
-                        default=os.path.expanduser('~/Obsidian/Personal/_inputs/plaud'),
-                        help='Output directory (default: ~/Obsidian/Personal/_inputs/plaud)')
+                        default=default_output,
+                        help=f'Output directory (default: {default_output})')
     parser.add_argument('--no-audio', action='store_true',
                         help='Skip audio file downloads')
     parser.add_argument('--force', action='store_true',

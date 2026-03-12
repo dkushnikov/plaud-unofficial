@@ -17,7 +17,7 @@ import sys
 from pathlib import Path
 
 
-PLAUD_DIR = Path(os.path.expanduser("~/Obsidian/Personal/_inputs/Plaud"))
+PLAUD_DIR = Path(os.environ.get("PLAUD_DATA_DIR", os.path.expanduser("~/plaud-data")))
 
 
 def read_frontmatter(path: Path) -> dict:
