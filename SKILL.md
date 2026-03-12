@@ -124,12 +124,6 @@ All commands should be run from the skill directory (`~/.claude/skills/plaud-api
 | Transcribe-all dry run | `python3 plaud_client.py transcribe-all --dry-run` |
 | Check transcription quota | `python3 plaud_client.py quota` |
 | Check transcription status | `python3 plaud_client.py status` |
-| List supported languages | `python3 plaud_client.py languages` |
-| Languages as JSON | `python3 plaud_client.py languages --json` |
-| List recently used templates | `python3 plaud_client.py templates` |
-| List template categories | `python3 plaud_client.py categories` |
-| Show user settings | `python3 plaud_client.py settings` |
-| Show profile & membership | `python3 plaud_client.py profile` |
 
 ## Common Patterns
 
@@ -205,23 +199,7 @@ python3 plaud_client.py transcribe-all
 python3 plaud_client.py transcribe-all --delay 5
 ```
 
-### Use Official Templates
-
-Official template IDs for the `--template` flag:
-- `AI-CHOICE` — Adaptive Summary (default, works with all scenes)
-- `REASONING-NOTE` — Reasoning Summary (all scenes)
-- `MEETING` — Meeting Note (scenes 0, 1, 102, 103, 1000)
-- `MEETING-SEMINAR` — Discussion Summary (scenes 0, 2)
-
-```bash
-# Transcribe with Meeting Note template
-python3 plaud_client.py transcribe <file_id> --template MEETING
-
-# Transcribe with Reasoning Summary
-python3 plaud_client.py transcribe <file_id> --template REASONING-NOTE
-```
-
-### Check Account Status
+### Check Quota and Status
 
 ```bash
 # Check remaining transcription quota
@@ -229,28 +207,6 @@ python3 plaud_client.py quota
 
 # Check transcription processing status
 python3 plaud_client.py status
-
-# Show membership plan and remaining hours
-python3 plaud_client.py profile
-
-# Show user settings (industry, custom vocabulary, speaker tagging)
-python3 plaud_client.py settings
-```
-
-### Explore Languages and Templates
-
-```bash
-# List all 113 supported languages
-python3 plaud_client.py languages
-
-# Get full language list as JSON (for scripting)
-python3 plaud_client.py languages --json
-
-# Browse template categories
-python3 plaud_client.py categories
-
-# See recently used templates
-python3 plaud_client.py templates
 ```
 
 ## Error Handling
@@ -284,11 +240,6 @@ Key endpoints used by plaud_client.py:
 - `POST /ai/transsumm/{file_id}` - Trigger transcription + AI summary
 - `GET /ai/trans-status` - Check transcription processing status
 - `GET /user/stat/transcription/quota` - Check remaining quota
-- `GET /others/language_list` - List all 113 supported languages
-- `POST /summary/community/templates/recently_used` - Recently used templates
-- `GET /summary/community/templates/categorys` - Template categories
-- `GET /user/me/settings` - User settings (industry, vocabulary, speaker tagging)
-- `GET /user/me` - User profile with membership and quota info
 
 ## Included Files
 

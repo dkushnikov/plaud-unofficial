@@ -44,9 +44,9 @@ Beyond `Authorization` and `Content-Type`, the web app sends additional headers:
 | `app-platform` | `web` | Client platform |
 | `edit-from` | `web` | Edit origin |
 | `timezone` | `Europe/Madrid` | User's timezone (IANA format) |
-| `x-device-id` | `a1b2c3d4e5f67890` | Device identifier (16-char hex) |
-| `x-pld-tag` | `a1b2c3d4e5f67890` | Same as x-device-id |
-| `x-pld-user` | `abcdef1234567890...` | User hash (64-char hex, SHA-256-like) |
+| `x-device-id` | `e6bb5eac367f69a6` | Device identifier (16-char hex) |
+| `x-pld-tag` | `e6bb5eac367f69a6` | Same as x-device-id |
+| `x-pld-user` | `140b9889eff6...` | User hash (64-char hex, SHA-256-like) |
 
 Most endpoints work with just `Authorization`. The extra headers may be required for transcription triggers.
 
@@ -376,7 +376,7 @@ Authorization: bearer <token>
   "msg": "success",
   "data": {
     "industry": "technology",
-    "words": ["MyCompany", "custom term"],
+    "words": ["Manychat", "custom term"],
     "language": "en",
     "auto_speaker_tagging": true,
     "speaker_cloud_enabled": true,

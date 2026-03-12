@@ -350,24 +350,6 @@ Examples:
 
     # Check transcription status
     python plaud_client.py status
-
-    # List supported languages
-    python plaud_client.py languages
-
-    # List languages as JSON
-    python plaud_client.py languages --json
-
-    # List recently used templates
-    python plaud_client.py templates
-
-    # List template categories
-    python plaud_client.py categories
-
-    # Show user settings
-    python plaud_client.py settings
-
-    # Show user profile with membership and quota
-    python plaud_client.py profile
 """
     )
 
