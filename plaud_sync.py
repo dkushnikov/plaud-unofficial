@@ -102,8 +102,8 @@ def sync_file(client: PlaudClient, file_info: dict, output_dir: Path,
     file_dir = output_dir / folder_name
 
     # Check if already synced
-    transcript_path = file_dir / "transcript.md"
-    if transcript_path.exists() and not force:
+    source_path = file_dir / "source.md"
+    if source_path.exists() and not force:
         return False
 
     # Get full details (includes pre-signed S3 URLs)
@@ -189,7 +189,7 @@ def sync_file(client: PlaudClient, file_info: dict, output_dir: Path,
     if transcript_text:
         sections.append(f'\n## Transcript\n{transcript_text}')
 
-    transcript_path.write_text('\n'.join(sections), encoding='utf-8')
+    source_path.write_text('\n'.join(sections), encoding='utf-8')
 
     # Download audio
     if download_audio:

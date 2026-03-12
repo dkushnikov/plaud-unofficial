@@ -183,7 +183,7 @@ def cmd_status(args):
     total = 0
 
     for folder in sorted(PLAUD_DIR.iterdir()):
-        t = folder / "transcript.md"
+        t = folder / "source.md"
         if not t.exists():
             continue
         total += 1
@@ -218,7 +218,7 @@ def cmd_categorize(args):
     hold_count = 0
 
     for folder in sorted(PLAUD_DIR.iterdir()):
-        t = folder / "transcript.md"
+        t = folder / "source.md"
         if not t.exists():
             continue
         fm = read_frontmatter(t)
@@ -256,7 +256,7 @@ def cmd_classify(args):
     skipped = 0
 
     for folder in sorted(PLAUD_DIR.iterdir()):
-        t = folder / "transcript.md"
+        t = folder / "source.md"
         if not t.exists():
             continue
         fm = read_frontmatter(t)
@@ -288,7 +288,7 @@ def cmd_classify(args):
 def cmd_list_hold(args):
     """Show recordings in HOLD (unknown/private sensitivity)."""
     for folder in sorted(PLAUD_DIR.iterdir()):
-        t = folder / "transcript.md"
+        t = folder / "source.md"
         if not t.exists():
             continue
         fm = read_frontmatter(t)
@@ -304,7 +304,7 @@ def cmd_list_hold(args):
 def cmd_list_date(args):
     """Show recordings for a specific date."""
     for folder in sorted(PLAUD_DIR.iterdir()):
-        t = folder / "transcript.md"
+        t = folder / "source.md"
         if not t.exists():
             continue
         fm = read_frontmatter(t)
