@@ -289,6 +289,24 @@ class PlaudClient:
         response.raise_for_status()
         return response.json()
 
+    def update_settings(self, **kwargs) -> dict:
+        """
+        Update user settings.
+
+        Supported fields: words (custom vocabulary), industry, language,
+        auto_speaker_tagging, speaker_cloud_enabled.
+
+        Args:
+            **kwargs: Settings fields to update
+
+        Returns:
+            API response dictionary
+        """
+        url = f"{self.api_domain}/user/me/settings"
+        response = self.session.post(url, json=kwargs)
+        response.raise_for_status()
+        return response.json()
+
     def get_profile(self) -> dict:
         """Get full user profile with membership info."""
         url = f"{self.api_domain}/user/me"
